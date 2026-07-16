@@ -4,22 +4,23 @@
 #include    <fstream>
 #include    <string>
 
+#include	<cstring>
+
 #include	"List.h"
 #include    "LibStudent.h"
 #include    "LibBook.h"
 
 using namespace std;
 
-bool ReadFile(string, List);					// NAT
-bool DeleteRecord(List, char);					//SAM
-bool Display(List, int, int);					//NAT
-bool InsertBook(string, List);					//SAM
-bool SearchStudent(List, charid, LibStudent&);	//NAT
-bool computeAndDisplayStatistics(List);			//MARCUS
-bool printStuWithSameBook(List, char);			//SAM
-bool displayWarnedStudent(List, List, List);	//MARCUS
-int menu();										//NAT
-
+bool ReadFile(string, List *);
+bool DeleteRecord(List *, char *);
+bool Display(List, int, int);
+bool InsertBook(string, List *);
+bool SearchStudent(List *, char *id, LibStudent &);
+bool computeAndDisplayStatistics(List *);
+bool printStuWithSameBook(List *, char *);
+bool displayWarnedStudent(List *, List *, List *);
+int menu();
 
 int main() {
 	
@@ -32,17 +33,16 @@ int main() {
 
 bool ReadFile(string filename, List* list) {
 
-	try {
-		ifstream studentFile(filename);
-	}
-	catch {
+	ifstream studentFile(filename);
+
+	if(!studentFile.is_open()){
 		cout << "Error parsing " << filename << ": file cannot be found" << endl;
 		return false;
 	}
 
-	LibStudent student = new LibStudent();
+	LibStudent student, stuCheck;
 
-	string line;
+	string line, attr, value;
 	int stuCount = 0, pos;
 
 	while (getline(studentFile, line)) {
@@ -50,29 +50,35 @@ bool ReadFile(string filename, List* list) {
 		pos = line.find("=");
 		if (pos == string::npos) continue; //skip empty lines
 
-		switch (line.substr(0, pos-1)) { //check for attribute type, update attribute accordingly
-		case "Student Id":
-			student.id = line.substr(pos + 2);
-			break;
-		case "Name":
-			student.name = line.substr(pos + 2);
-			break;
-		case "course":
-			student.course = line.substr(pos + 2);
-			break;
-		case "Phone Number":
-			student.number = line.substr(pos + 2);
+		attr = line.substr(0, pos-1);
+		value = line.substr(pos + 2);
 
-			for (int i = 0; i < stuCount + 1; i++) {
-				if (list.get(i) == student) {
-					cout << "Warning parsing " << filename << ": duplicate entry found" << endl;
+		if (attr == "Student Id")
+		{
+			strcpy(student.id, value.c_str());
+		}
+		else if (attr == "Name"){
+			strcpy(student.name, value.c_str());
+		}
+		else if (attr == "course"){
+			strcpy(student.course, value.c_str());
+		}
+		else if (attr == "Phone Number"){
+			strcpy(student.phone_no, value.c_str());
+
+			for (int i = 0; i < stuCount + 1; i++)
+			{
+				list->get(i, stuCheck);
+				if (stuCheck.id == student.id) //assume all id are unique
+				{
+					cout << "Warning parsing " << filename << ": duplicate entry id found" << endl;
 					continue;
 				}
 			}
-			list.insert(student);
+			list->insert(student);
 			stuCount++;
-			break;
-		default:
+		}
+		else {
 			cout << "Error parsing " << filename << ": bad attribute identifier" << endl;
 			return false;
 		}
