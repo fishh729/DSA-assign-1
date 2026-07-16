@@ -3,12 +3,17 @@
 #include	<cstdio>
 #include    <fstream>
 #include    <string>
+
+#include    <sstream>
+
 #include	"List.h"
 #include    "LibStudent.h"
 #include    "LibBook.h"
 
 
 using namespace std;
+
+string[] splitString(string, int)
 
 bool ReadFile(string, List *);
 bool DeleteRecord(List *, char *);
@@ -22,8 +27,6 @@ int menu();
 
 
 int main() {
-
-	
 	
 	menu();
 
@@ -32,9 +35,23 @@ int main() {
 	return 0;
 }
 
-bool ReadFile(string filename, List *list);
+bool ReadFile(string filename, List* list) {
+
+	infile studentFile(filename);
+
+	LibStudent student;
+	string 
+
+	while (!studentFile.eof()) {
+		studentFile 
+	}
+
+}
 
 int menu() {
-	ReadFile(string, List*);
+
+	List* studentList = new List();
+
+	ReadFile("student.txt", studentList);
 	// do smth
 }
