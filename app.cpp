@@ -22,13 +22,19 @@ int menu();
 
 
 int main() {
+
 	
+	
+	menu();
 
 	cout << "\n\n";
 	system("pause");
 	return 0;
 }
 
+bool ReadFile(string filename, List *list);
 
-
-
+int menu() {
+	ReadFile(string, List*);
+	// do smth
+}
