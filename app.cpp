@@ -36,7 +36,7 @@ bool ReadFile(string filename, List* list) {
 		ifstream studentFile(filename);
 	}
 	catch {
-		cout << "Input file " + filename + " cannot be found!" << endl;
+		cout << "Error parsing " << filename << ": file cannot be found" << endl;
 		return false;
 	}
 
@@ -62,6 +62,13 @@ bool ReadFile(string filename, List* list) {
 			break;
 		case "Phone Number":
 			student.number = line.substr(pos + 2);
+
+			for (int i = 0; i < stuCount + 1; i++) {
+				if (list.get(i) == student) {
+					cout << "Warning parsing " << filename << ": duplicate entry found" << endl;
+					continue;
+				}
+			}
 			list.insert(student);
 			stuCount++;
 			break;
