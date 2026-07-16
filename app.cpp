@@ -32,40 +32,46 @@ int main() {
 
 bool ReadFile(string filename, List* list) {
 
-	ifstream studentFile(filename);
-
-	LibStudent student;
-	string line;
-	int count, pos;
-	bool checks[4] = {false, false, false, false};
-
-	while (getline(studentFile, line)) {
-		pos = line.find("=");
-		if (pos == string::npos) continue;
-
-		switch (line.substr(0, pos-1)) {
-		case "Student Id":
-
-			checks[0] = true;
-			break;
-		case "Name":
-
-			checks[1] = true;
-			break;
-		case "course":
-
-			checks[2] = true;
-			break;
-		case "Phone Number":
-
-			checks[2] = true;
-			break;
-		default:
-			cout << "Error parsing " << filename << ": bad attribute identifier";
-		}
-
+	try {
+		ifstream studentFile(filename);
+	}
+	catch {
+		cout << "Input file " + filename + " cannot be found!" << endl;
+		return false;
 	}
 
+	LibStudent student = new LibStudent();
+
+	string line;
+	int stuCount = 0, pos;
+
+	while (getline(studentFile, line)) {
+
+		pos = line.find("=");
+		if (pos == string::npos) continue; //skip empty lines
+
+		switch (line.substr(0, pos-1)) { //check for attribute type, update attribute accordingly
+		case "Student Id":
+			student.id = line.substr(pos + 2);
+			break;
+		case "Name":
+			student.name = line.substr(pos + 2);
+			break;
+		case "course":
+			student.course = line.substr(pos + 2);
+			break;
+		case "Phone Number":
+			student.number = line.substr(pos + 2);
+			list.insert(student);
+			stuCount++;
+			break;
+		default:
+			cout << "Error parsing " << filename << ": bad attribute identifier" << endl;
+			return false;
+		}
+	}
+
+	return true;
 }
 
 int menu() {
