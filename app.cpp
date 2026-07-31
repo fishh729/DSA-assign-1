@@ -14,12 +14,13 @@
 
 using namespace std;
 
-void extractSpace(const string &lines, string info[], int maxInfo);
-int julianDay(int day, int month, int year);
+int splitString(const string&, string[], char, int);
+Date extractDate(string);
+int julianDay(Date);
 
 bool ReadFile(string, List *);
 bool DeleteRecord(List *, char *);
-bool Display(List, int, int);
+bool Display(List *, int, int);
 bool InsertBook(string, List *);
 bool SearchStudent(List *, char *id, LibStudent &);
 bool computeAndDisplayStatistics(List *);
@@ -36,23 +37,36 @@ int main() {
 	return 0;
 }
 
-void extractSpace(const string &lines, string info[], int maxInfo)
+int splitString(const string &line, string output[], char delim, int maxInfo)
 {
-	size_t start = 0;
-	size_t end;
+	size_t start = 0, end;
 	int count = 0;
-	while (count < maxInfo && (end = lines.find(' ', start)) != string::npos)
+	while (count < maxInfo && (end = line.find(delim, start)) != string::npos)
 	{
-		info[count++] = lines.substr(start);
+		output[count++] = line.substr(start);
 		start = end + 1;
 	}
-	if (count < maxInfo && start < lines.length())
+	if (count < maxInfo && start < line.length())
 	{
-		info[count++] = lines.substr(start);
+		output[count++] = line.substr(start);
 	}
+	return count;
 }
 
-int julianDay(int day, int month, int year) {
+Date extractDate(string line) { // assumes '/' delimiter
+	Date date;
+
+	size_t d1 = line.find('/');
+	size_t d2 = line.find('/', d1 + 1);
+	date.day = stoi(line.substr(0, d1));
+	date.month = stoi(line.substr(d1 + 1, d2 - d1 - 1));
+	date.year = stoi(line.substr(d2 + 1));
+
+	return date;
+}
+
+int julianDay(Date date) {
+	int day = date.day, month = date.month, year = date.year;
 	if (month <= 2) {
 		year--;
 	}
@@ -77,7 +91,8 @@ bool ReadFile(string filename, List* list) {
 	LibStudent student, stuCheck;
 
 	string line, attr, value;
-	int stuCount = 0, pos;
+	int stuCount = 0;
+	size_t pos;
 
 	while (getline(studentFile, line)) {
 
@@ -97,20 +112,20 @@ bool ReadFile(string filename, List* list) {
 		else if (attr == "course"){
 			strcpy(student.course, value.c_str());
 		}
-		else if (attr == "Phone Number"){
+		else if (attr == "Phone Number"){ //assumes order correct, phone number is the last attribute of each student object
 			strcpy(student.phone_no, value.c_str());
 
-			bool dupeID = false;
+			bool dupe = false;
 			Node* cur = list->head;
 
 			while (cur != NULL) {
-				if (cur->item.id == student.id) {
+				if (strcmp(cur->item.id, student.id) == 0) {
 					cout << "Warning parsing " << filename << ": duplicate entry id found" << endl;
-					dupeID = true;
+					dupe = true;
 				}
 				cur = cur->next;
 			}
-			if (!dupeID) {
+			if (!dupe) {
 				list->insert(student);
 				stuCount++;
 			}
@@ -135,6 +150,10 @@ bool ReadFile(string filename, List* list) {
 	return true;
 }
 
+bool DeleteRecord(List* list, char* id) {
+	return true;
+}
+
 bool SearchStudent(List *list, char *idPtr, LibStudent& student) {
 	
 	Node* cur = list->head;
@@ -150,24 +169,26 @@ bool SearchStudent(List *list, char *idPtr, LibStudent& student) {
 }
 
 bool InsertBook(string filename, List* list) {
+	
+	string studentID, authorsLine, borrowStr, dueStr;
+	LibBook book;
+
+	Date currentDate;
+	currentDate.day = 29;
+	currentDate.month = 3;
+	currentDate.year = 2020;
+
 	ifstream inFile(filename);
 	if (!inFile.is_open()) {
 		cout << "Error: Cannot open file " << filename << endl;
 		return false;
 	}
 
-	string lines;
-	bool failInserted = false;
+	while (inFile >> studentID >> authorsLine >> book.title >> book.publisher 
+				>> book.ISBN >> book.yearPublished >> book.callNum 
+				>> borrowStr >> dueStr) { //input to the Libbook 
 
-	while (!inFile.eof()) {
-		string studentID, authorsLine, borrowStr, dueStr;
-		
-		//input to the Libbook 
-		LibBook book;
-		inFile >> studentID >> authorsLine >> book.title >> book.publisher >> book.ISBN >> book.yearPublished >> book.callNum >> borrowStr >> dueStr;
-
-		Node* cur;		//find the student id in the list
-		cur = list->head;
+		Node* cur = list->head;		//find the student id in the list
 		bool found = false;
 		while (cur != NULL) {
 			if (strcmp(cur->item.id, studentID.c_str()) == 0) {
@@ -180,57 +201,22 @@ bool InsertBook(string filename, List* list) {
 			cout << "Error: cannot find " << book.title << " book-related " << studentID << " student ID!" << endl;
 			continue;
 		}
+		LibStudent& student = cur->item;	//get the student record
 
-		//parse the author name and store it into the book.author array
-		int authorCount = 0;
-		size_t startPos = 0;
-		while (authorCount < 10) {
-			size_t slash = authorsLine.find('/', startPos);
-			string authorName;
-			if (slash == string::npos) {
-				authorName = authorsLine.substr(startPos);
-				startPos = string::npos;
-			}
-			else {
-				authorName = authorsLine.substr(startPos, slash - startPos);
-				startPos = slash + 1;
-			}
-			if (authorName.empty()) break;
-			book.author[authorCount] = new char[authorName.length() + 1];
-			strcpy(book.author[authorCount], authorName.c_str());
-			authorCount++;
-			if (startPos == string::npos) break;
+		//parse the author names and store it into the book.author array
+		string authors[10];
+		for (int i = 0; i < splitString(authorsLine, authors, '/', 10); i++) {
+			book.author[i] = new char[authors[i].length() + 1];
+			strcpy(book.author[i], authors[i].c_str());
 		}
 
 		//parse the borrow and due date and store it into the book.borrow and book.due
-		size_t d1 = borrowStr.find('/');
-		size_t d2 = borrowStr.find('/', d1 + 1);
-		int bd = stoi(borrowStr.substr(0, d1));
-		int bm = stoi(borrowStr.substr(d1 + 1, d2 - d1 - 1));
-		int by = stoi(borrowStr.substr(d2 + 1));
-		book.borrow.day = bd;
-		book.borrow.month = bm;
-		book.borrow.year = by;
-
-
-		d1 = dueStr.find('/');
-		d2 = dueStr.find('/', d1 + 1);
-		cout << dueStr.substr(0, d1) << " : " << dueStr.substr(d1 + 1, d2 - d1 - 1) << " : " << dueStr.substr(d2 + 1, d2 + 1) << endl;
-		int dd = stoi(dueStr.substr(0, d1));
-		int dm = stoi(dueStr.substr(d1 + 1, d2 - d1 - 1));
-		int dy = stoi(dueStr.substr(d2 + 1));
-		book.due.day = dd;
-		book.due.month = dm;
-		book.due.year = dy;
+		book.borrow = extractDate(borrowStr);
+		book.due = extractDate(dueStr);
 
 		//calculate overdue fine using the julian day
-		Date currentDate;
-		currentDate.day = 29;
-		currentDate.month = 3;
-		currentDate.year = 2020;
-
-		int dueJDN = julianDay(book.due.day, book.due.month, book.due.year);
-		int currentJDN = julianDay(currentDate.day, currentDate.month, currentDate.year);
+		int dueJDN = julianDay(book.due);
+		int currentJDN = julianDay(currentDate);
 		
 		int daysOverdue = 0;
 		if (currentJDN > dueJDN) {
@@ -238,20 +224,43 @@ bool InsertBook(string filename, List* list) {
 		}
 		book.fine = daysOverdue * 0.5; // RM 0.5 per day
 
-
 		//insert the book into the student book record
-		LibStudent& student = cur->item;	//get the student record
 		if (student.totalbook < 15) {
-			student.book[student.totalbook] = book;
 
+			student.book[student.totalbook] = book;
 			student.totalbook++;
 			student.calculateTotalFine();	//undergo the provide function
-
 		}
 		cout << "Loaded book " << book.title << endl;
 	}
 
 	inFile.close();
+	return true;
+}
+
+bool Display(List* list, int source, int detail) { //make it look more beautiful
+
+	Node* cur = list->head; //init traversal node to head of linked list
+
+	while (cur != NULL) { //while not at tail of linked list
+		cur->item.print(cout); //placeholder print student
+		for (int i = 0; i < cur->item.totalbook; i++) {
+			cur->item.book[i].print(cout); //placeholder print book
+		}
+		cur = cur->next; //go to next node
+	}
+
+	return true;
+}
+
+bool computeAndDisplayStatistics(List* list) {
+	return true;
+}
+
+bool printStuWithSameBook(List* list, char* callNum) {
+	return true;
+}
+bool displayWarnedStudent(List* list, List* type1, List* type2) {
 	return true;
 }
 
@@ -264,7 +273,6 @@ int menu()
 	// 3
 	LibStudent searchedStu;
 	char idQuery[10];
-	// char* idPtr = &idQuery;
 
 	while (true)
 	{
