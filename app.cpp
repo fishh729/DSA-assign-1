@@ -26,6 +26,7 @@ bool SearchStudent(List *, char *id, LibStudent &);
 bool computeAndDisplayStatistics(List *);
 bool printStuWithSameBook(List *, char *);
 bool displayWarnedStudent(List *, List *, List *);
+
 int menu();
 
 int main() {
@@ -167,7 +168,12 @@ bool SearchStudent(List *list, char *idPtr, LibStudent& student) {
 	}
 	return false; //not found
 }
-
+bool Display(List list, int source, int detail) {
+	if (list == NULL || list->head == NULL) {
+		cout << "Error: List is empty!" << endl;
+		return false;
+	}
+}
 bool InsertBook(string filename, List* list) {
 	
 	string studentID, authorsLine, borrowStr, dueStr;
