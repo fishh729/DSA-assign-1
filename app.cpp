@@ -239,16 +239,95 @@ bool InsertBook(string filename, List* list) {
 	return true;
 }
 
-bool Display(List* list, int source, int detail) { //make it look more beautiful
+bool Display(List* list, int source, int detail) {
+	if (list == NULL || list->empty()) { //check empty list
+		cout << "Error: List is empty!" << endl;
+		return false;
+	}
+	ostream* out = &cout; // for screen output if(source ==2)
+	ofstream fileOut;// for file output (source==1)
 
-	Node* cur = list->head; //init traversal node to head of linked list
-
-	while (cur != NULL) { //while not at tail of linked list
-		cur->item.print(cout); //placeholder print student
-		for (int i = 0; i < cur->item.totalbook; i++) {
-			cur->item.book[i].print(cout); //placeholder print book
+	if (source == 1) {
+		string filename;
+		if (detail == 1) {
+			filename = "student_booklist.txt";
+		} 
+		else if (detail == 2) {
+			filename = "student_info.txt";
 		}
-		cur = cur->next; //go to next node
+		else {
+			cout << "Error: Invalid detail option!" << endl;
+			return false;
+		}
+		fileOut.open(filename);
+		if (!fileOut.is_open()) {
+			cout << "Error: Cannot create file!" << endl;
+			return false;
+		}
+		out = &fileOut;
+	}
+	else if (source != 2) {
+		cout << "Error: Invalid source option!" << endl;
+		return false;
+	}
+
+	Node* cur = list->head;//start from first node
+	int studentNo = 1;//student number
+
+	while (cur != NULL) {//loop until end of list
+		LibStudent& stu = cur->item;
+
+		*out << "STUDENT " << studentNo << endl;
+		*out << "Name:  " << stu.name << endl;
+		*out << "Id: " << stu.id << endl;
+		*out << "Course: " << stu.course << endl;
+		*out << "Phone No: " << stu.phone_no << endl;
+		*out << "Total Fine: RM" << fixed << setprecision(2) << stu.total_fine << endl;
+
+		if (detail == 1) {
+			*out << "\nBOOK LIST:\n\n";
+			if (stu.totalbook == 0) {
+				*out << "No books borrowed.\n";
+			}
+			else {
+				for (int i = 0; i < stu.totalbook; i++) {
+					LibBook& book = stu.book[i];
+					*out << "Book " << (i + 1) << endl;
+					*out << "Title: " << book.title << endl;
+					*out << "Author: ";
+					bool first = true;
+					for (int a = 0; a < 10; a++) {
+						if (book.author[a] != NULL && strlen(book.author[a]) > 0) {
+							if (!first) { *out << "     "; }
+							*out << book.author[a];
+							first = false;
+						}
+					}
+					*out << endl;
+
+					*out << "Publisher: " << book.publisher << endl;
+					*out << "Year Published: " << book.yearPublished << endl;
+					*out << "ISBN: " << book.ISBN << endl;
+					*out << "Call Number: " << book.callNum << endl;
+					*out << "Borrow Date: " << book.borrow.day << "/" << book.borrow.month << "/" << book.borrow.year << endl;
+					*out << "Due Date: " << book.due.day << "/" << book.due.month << "/" << book.due.year << endl;
+					*out << "Fine: RM" << fixed << setprecision(2) << book.fine << endl;
+					*out << endl;
+				}
+			}
+		}
+
+		*out << "*****************************************************************************\n";//separator
+		cur = cur->next;
+		studentNo++;
+	}
+
+	if (source == 1) {
+		fileOut.close();
+		cout << "Successfully display output to " << ((detail == 1) ? "student_booklist.txt" : "student_info.txt") << endl;
+	}
+	else {
+		cout << "Successfully display output" << endl;
 	}
 
 	return true;
@@ -377,6 +456,13 @@ int menu()
 			InsertBook("book.txt", studentList);
 			break;
 		case 5:
+			int source, detail;
+			cout << "DISPLAY OUTPUT\n\n";
+			cout << "Where do you want to display the output (1 - File / 2 - Screen): ";
+			cin >> source;
+			cout << "Do you want to display book list for every student (1 - YES / 2 - NO): ";
+			cin >> detail;
+			Display(studentList, source, detail);
 			break;
 		case 6:
 			break;

@@ -25,3 +25,12 @@ Course: CS
 Practical Group: P9
 Practical Session: Friday, 8AM - 10AM
 Tutor: Mr. Wong Chee Siang
+
+Group Member 4:
+
+Name: Chan Zhuo Jett
+Student ID: 24ACB04473
+Course: CS
+Practical Group: P3
+Practical Session: Wednesday, 8AM - 10AM
+Tutor: Mr. Wong Chee Siang
