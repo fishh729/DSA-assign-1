@@ -168,12 +168,7 @@ bool SearchStudent(List *list, char *idPtr, LibStudent& student) {
 	}
 	return false; //not found
 }
-bool Display(List list, int source, int detail) {
-	if (list == NULL || list->head == NULL) {
-		cout << "Error: List is empty!" << endl;
-		return false;
-	}
-}
+
 bool InsertBook(string filename, List* list) {
 	
 	string studentID, authorsLine, borrowStr, dueStr;
@@ -264,8 +259,63 @@ bool computeAndDisplayStatistics(List* list) {
 }
 
 bool printStuWithSameBook(List* list, char* callNum) {
+
+	if(list->head == NULL) {
+		cout << "No Students found!";
+		return false;
+	}
+	
+	Node* cur = list->head;
+	LibBook temp;
+	int count = 0;
+
+	strcpy(temp.callNum, callNum);
+
+	while (cur != NULL) {
+		for (int i = 0; i < cur->item.totalbook; i++) {
+
+			if (cur->item.book[i].compareCallNum(temp)) {
+				count++;
+				break;
+			}
+		}
+		cur = cur -> next;
+	}
+
+	if (count == 0) {
+		cout << "No Books with " << callNum << " found!";
+		return false;
+	}
+
+	cout << "There are " << count
+     << (count == 1 ? " student that borrows" : " students that borrow")
+     << " the book with call number " << callNum
+     << " as shown below: \n\n";
+
+	cur = list->head;
+
+	while (cur != NULL) {
+		for (int j = 0; j < cur->item.totalbook; j++) {
+
+			if (cur->item.book[j].compareCallNum(temp)) {
+				cout << "Student ID: " << cur->item.id << endl;
+				cout << "Name: " << cur->item.name << endl;
+				cout << "Course: " << cur->item.course << endl;
+				cout << "Phone No.: " << cur->item.phone_no << endl;
+				cout << "Borrow Date: ";
+				cur->item.book[j].borrow.print(cout);
+				cout << endl;
+				cout << "Due Date: ";
+				cur->item.book[j].due.print(cout);
+				cout << endl << endl;
+				break;
+			}
+		}
+		cur = cur -> next;
+	}
 	return true;
 }
+
 bool displayWarnedStudent(List* list, List* type1, List* type2) {
 	return true;
 }
@@ -279,6 +329,7 @@ int menu()
 	// 3
 	LibStudent searchedStu;
 	char idQuery[10];
+	char callNumQuery[20];
 
 	while (true)
 	{
@@ -330,6 +381,9 @@ int menu()
 		case 6:
 			break;
 		case 7:
+			cout << "Enter Book's Call Number to search for: ";
+			cin >> callNumQuery;
+			printStuWithSameBook(studentList, callNumQuery);
 			break;
 		case 8:
 			break;
