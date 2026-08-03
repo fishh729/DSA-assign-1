@@ -18,14 +18,6 @@ int splitString(const string &, string[], char, int);
 Date extractDate(string);
 int julianDay(Date);
 
-bool ReadFile(string, List *);
-bool DeleteRecord(List *, char *);
-bool Display(List *, int, int);
-bool InsertBook(string, List *);
-bool SearchStudent(List *, char *id, LibStudent &);
-bool computeAndDisplayStatistics(List *);
-bool printStuWithSameBook(List *, char *);
-bool displayWarnedStudent(List *, List *, List *);
 bool ReadFile(string, List*);
 bool DeleteRecord(List*, char*);
 bool Display(List*, int, int);
