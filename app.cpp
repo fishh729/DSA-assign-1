@@ -18,14 +18,14 @@ int splitString(const string &, string[], char, int);
 Date extractDate(string);
 int julianDay(Date);
 
-bool ReadFile(string, List*);
-bool DeleteRecord(List*, char*);
-bool Display(List*, int, int);
-bool InsertBook(string, List*);
-bool SearchStudent(List*, char* id, LibStudent&);
-bool computeAndDisplayStatistics(List*);
-bool printStuWithSameBook(List*, char*);
-bool displayWarnedStudent(List*, List*, List*);
+bool ReadFile(string, List *);
+bool DeleteRecord(List *, char *);
+bool Display(List *, int, int);
+bool InsertBook(string, List *);
+bool SearchStudent(List *, char *id, LibStudent &);
+bool computeAndDisplayStatistics(List *);
+bool printStuWithSameBook(List *, char *);
+bool displayWarnedStudent(List *, List *, List *);
 
 int menu();
 
@@ -84,6 +84,7 @@ int julianDay(Date date)
 	if (month <= 2)
 	{
 		year--;
+		month += 12;
 	}
 	// julian day formula
 	int a = year / 100;
@@ -101,6 +102,7 @@ bool ReadFile(string filename, List *list)
 		cout << "Warning parsing " << filename << ": file cannot be opened" << endl;
 		return false;
 	}
+	LibStudent student;
 	string line, attr, value;
 	int stuCount = 0;
 	size_t pos;
@@ -269,7 +271,11 @@ bool InsertBook(string filename, List *list)
 			student.totalbook++;
 			student.calculateTotalFine(); // undergo the provide function
 		}
-		cout << "Loaded book " << book.title << endl;
+		cout << "Loaded book " << book.title << ", by student " << student.name << ", id " << student.id << ", borrowdate ";
+		book.borrow.print(cout);
+		cout << ", borrowstr " << borrowStr << ", duejulianday " << dueJDN << ", currentjulianday " << currentJDN << ", duedate ";
+		book.due.print(cout);
+		cout << ", duestr " << dueStr << ", FINE " << book.fine << endl;
 	}
 
 	inFile.close();
@@ -293,7 +299,8 @@ bool Display(List *list, int source, int detail)
 		{
 			filename = "student_booklist.txt";
 		}
-		else if (detail == 2) {
+		else if (detail == 2)
+		{
 			filename = "student_info.txt";
 		}
 		else
@@ -442,12 +449,13 @@ bool computeAndDisplayStatistics(List *list)
 bool printStuWithSameBook(List *list, char *callNum)
 {
 
-	if (list->head == NULL) {
+	if (list->head == NULL)
+	{
 		cout << "No Students found!";
 		return false;
 	}
 
-	Node* cur = list->head;
+	Node *cur = list->head;
 	LibBook temp;
 	int count = 0;
 
@@ -506,28 +514,34 @@ bool printStuWithSameBook(List *list, char *callNum)
 	return true;
 }
 
-bool displayWarnedStudent(List* list, List* type1, List* type2) {
+bool displayWarnedStudent(List *list, List *type1, List *type2)
+{
 
-	if (list->head == NULL) {
+	if (list->head == NULL)
+	{
 		cout << "No Students found!";
 		return false;
 	}
 
-	Node* cur = list->head;
-	int count = 0, overdue = 0;
+	Node *cur = list->head;
 
-	while (cur != NULL) {
-		for (int i = 0; i < cur->item.totalbook; i++) {
-			if (cur->item.total_fine / 0.5 >= 10)
+	while (cur != NULL)
+	{
+		int count = 0, overdue = 0;
+		for (int i = 0; i < cur->item.totalbook; i++)
+		{
+			if (cur->item.book[i].fine / 0.5 >= 10)
 				count++;
-			else if (cur->item.book->fine > 0)
+			if (cur->item.book[i].fine > 0)
 				overdue++;
 			continue;
 		}
-		if (count >= 2) {
+		if (count > 2)
+		{
 			type1->insert(cur->item);
 		}
-		if (cur->item.total_fine >= 50 && overdue == cur->item.totalbook) {
+		if (cur->item.total_fine > 50 && overdue == cur->item.totalbook)
+		{
 			type2->insert(cur->item);
 		}
 		cur = cur->next;
@@ -535,18 +549,21 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 
 	cur = type1->head;
 
-	if (type1->size() == 0) {
+	if (type1->size() == 0)
+	{
 		cout << "No Students Found in Type 1." << endl;
-		return false;
 	}
-	else {
+	else
+	{
 		cout << "List of Warned Students (>= 2 books overdue for >= 10 days): \n\n";
 
-		while (cur != NULL) {
-			cout << "Student Name: " << cur->item.name << endl;
-			cout << "Student ID: " << cur->item.id << endl;
-			cout << "Course: " << cur->item.course << endl << endl;
-			for (int j = 0; j < cur->item.totalbook; j++) {
+		while (cur != NULL)
+		{
+			cur->item.print(cout);
+			for (int j = 0; j < cur->item.totalbook; j++)
+			{
+				if (cur->item.book[j].fine <= 5)
+					continue; // skip books w/o fine
 				cout << "Book " << j + 1 << endl;
 				cur->item.book[j].print(cout);
 			}
@@ -556,18 +573,19 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 
 	cur = type2->head;
 
-	if (type2->size() == 0) {
+	if (type2->size() == 0)
+	{
 		cout << "No Students Found in Type 2." << endl;
-		return false;
 	}
-	else {
+	else
+	{
 		cout << "List of Warned Students (Every book is due and totalfine >= 50): \n\n";
 
-		while (cur != NULL) {
-			cout << "Student Name: " << cur->item.name << endl;
-			cout << "Student ID: " << cur->item.id << endl;
-			cout << "Course: " << cur->item.course << endl << endl;
-			for (int j = 0; j < cur->item.totalbook; j++) {
+		while (cur != NULL)
+		{
+			cur->item.print(cout);
+			for (int j = 0; j < cur->item.totalbook; j++)
+			{
 				cout << "Book " << j + 1 << endl;
 				cur->item.book[j].print(cout);
 			}
@@ -580,8 +598,11 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 int menu()
 {
 
-	List* studentList = new List(); // main student list
+	List *studentList = new List(); // main student list
 	int sel;						// menu control
+	LibStudent searchedStu;
+	List *warnedType1 = new List();
+	List *warnedType2 = new List();
 
 	while (true)
 	{
@@ -605,12 +626,11 @@ int menu()
 		switch (sel)
 		{
 		case 1:
-			ReadFile("student.txt", studentList);
+			ReadFile("student2.txt", studentList);
 			break;
 		case 2:
 			break;
 		case 3:
-			LibStudent searchedStu;
 			char idQuery[10];
 			cout << "Please enter a student ID to search for: ";
 			cin >> idQuery;
@@ -631,7 +651,7 @@ int menu()
 
 			break;
 		case 4:
-			InsertBook("book.txt", studentList);
+			InsertBook("book2.txt", studentList);
 			break;
 		case 5:
 			int source, detail;
@@ -652,6 +672,7 @@ int menu()
 			printStuWithSameBook(studentList, callNumQuery);
 			break;
 		case 8:
+			displayWarnedStudent(studentList, warnedType1, warnedType2);
 			break;
 		case 9:
 			return 0;
