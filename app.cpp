@@ -404,42 +404,48 @@ bool computeAndDisplayStatistics(List *list)
 		return false;
 	}
 	const int NUM_COURSES = 5;
-	string courses[] = { "CS", "IA", "IB", "CN", "CT" };
+	string courses[] = {"CS", "IA", "IB", "CN", "CT"};
 
-	int numStudents[NUM_COURSES] = { 0 };
-	int totalBooks[NUM_COURSES] = { 0 };
-	int overdueBooks[NUM_COURSES] = { 0 };
-	double totalFine[NUM_COURSES] = { 0.0 };
+	int numStudents[NUM_COURSES] = {0};
+	int totalBooks[NUM_COURSES] = {0};
+	int overdueBooks[NUM_COURSES] = {0};
+	double totalFine[NUM_COURSES] = {0.0};
 
-	Node* cur = list->head;
-	
-	while (cur != NULL) {
-		LibStudent& stu = cur->item;
+	Node *cur = list->head;
+
+	while (cur != NULL)
+	{
+		LibStudent &stu = cur->item;
 		int courseIndex = -1;
-		for (int i = 0; i < NUM_COURSES; i++) {
-			if (strcmp(stu.course, courses[i]) == 0) {
+		for (int i = 0; i < NUM_COURSES; i++)
+		{
+			if (strcmp(stu.course, courses[i].c_str()) == 0)
+			{
 				courseIndex = i;
 				break;
 			}
 		}
-		if (courseIndex == -1) { // skip courses not in the list
+		if (courseIndex == -1)
+		{ // skip courses not in the list
 			cur = cur->next;
 			continue;
 		}
 		numStudents[courseIndex]++;
 		totalBooks[courseIndex] += stu.totalbook;
-		for (int j = 0; j < stu.totalbook; j++) {//count overdue books and fine
-			if (stu.book[j].fine > 0) {
+		for (int j = 0; j < stu.totalbook; j++)
+		{ // count overdue books and fine
+			if (stu.book[j].fine > 0)
+			{
 				overdueBooks[courseIndex]++;
-				totalFine[courseIndex] += stu.total_fine;
-				break;
+				totalFine[courseIndex] += stu.book[j].fine;
 			}
 		}
 		cur = cur->next;
 	}
 	cout << "\n";
 	cout << "Course\tNumber of Students\tTotal Books Borrowed\tTotal Overdue Books\tTotal Overdue Fine (RM)" << endl;
-	for (int i = 0; i < NUM_COURSES; i++) {
+	for (int i = 0; i < NUM_COURSES; i++)
+	{
 		cout << courses[i] << "\t" << numStudents[i] << "\t\t\t" << totalBooks[i] << "\t\t\t" << overdueBooks[i] << "\t\t\t" << fixed << setprecision(2) << totalFine[i] << endl;
 	}
 	cout << endl;
