@@ -26,11 +26,23 @@ bool SearchStudent(List *, char *id, LibStudent &);
 bool computeAndDisplayStatistics(List *);
 bool printStuWithSameBook(List *, char *);
 bool displayWarnedStudent(List *, List *, List *);
+bool ReadFile(string, List*);
+bool DeleteRecord(List*, char*);
+bool Display(List*, int, int);
+bool InsertBook(string, List*);
+bool SearchStudent(List*, char* id, LibStudent&);
+bool computeAndDisplayStatistics(List*);
+bool printStuWithSameBook(List*, char*);
+bool displayWarnedStudent(List*, List*, List*);
 
 int menu();
 
+<<<<<<< Updated upstream
 int main()
 {
+=======
+int main() {
+>>>>>>> Stashed changes
 
 	menu();
 
@@ -39,20 +51,36 @@ int main()
 	return 0;
 }
 
+<<<<<<< Updated upstream
 int splitString(const string &line, string output[], char delim, int maxInfo) // split line into string array using delimiter
+=======
+int splitString(const string& line, string output[], char delim, int maxInfo)
+>>>>>>> Stashed changes
 {
 	size_t start = 0, end = 0;
 	int count = 0;
+<<<<<<< Updated upstream
 	// split when delimiter exists, store value before the delimiter and move past the delimiter
 	while (count < maxInfo && (end = line.find(delim, start)) != std::string::npos)
+=======
+
+	while (count < maxInfo && (end = line.find(delim, start)) != string::npos)
+>>>>>>> Stashed changes
 	{
 		output[count++] = line.substr(start, end - start);
 		start = end + 1;
 	}
+<<<<<<< Updated upstream
 	if (count < maxInfo && start <= line.size())
 	{ // store remaining value
+=======
+
+	if (count < maxInfo && start < line.length())
+	{
+>>>>>>> Stashed changes
 		output[count++] = line.substr(start);
 	}
+
 	return count;
 }
 
@@ -95,13 +123,23 @@ bool ReadFile(string filename, List *list)
 
 	// open file
 	ifstream studentFile(filename);
+<<<<<<< Updated upstream
 	if (!studentFile.is_open())
 	{
 		cout << "Warning parsing " << filename << ": file cannot be opened" << endl;
+=======
+
+	if (!studentFile.is_open()) {
+		cout << "Error parsing " << filename << ": file cannot be found" << endl;
+>>>>>>> Stashed changes
 		return false;
 	}
 
 	LibStudent student;
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 	string line, attr, value;
 	int stuCount = 0;
 	size_t pos;
@@ -114,7 +152,10 @@ bool ReadFile(string filename, List *list)
 		if (pos == string::npos)
 			continue; // skip empty lines or bad lines without a '='
 
+<<<<<<< Updated upstream
 		// seperate line into before and after '='
+=======
+>>>>>>> Stashed changes
 		attr = line.substr(0, pos - 1);
 		value = line.substr(pos + 2);
 
@@ -126,6 +167,7 @@ bool ReadFile(string filename, List *list)
 		{
 			strcpy(student.id, value.c_str());
 		}
+<<<<<<< Updated upstream
 		else if (attr == "Name")
 		{
 			strcpy(student.name, value.c_str());
@@ -136,6 +178,15 @@ bool ReadFile(string filename, List *list)
 		}
 		else if (attr == "Phone Number")
 		{ // assumes order correct: phone number last attr of each student obj
+=======
+		else if (attr == "Name") {
+			strcpy(student.name, value.c_str());
+		}
+		else if (attr == "course") {
+			strcpy(student.course, value.c_str());
+		}
+		else if (attr == "Phone Number") { //assumes order correct, phone number is the last attribute of each student object
+>>>>>>> Stashed changes
 			strcpy(student.phone_no, value.c_str());
 
 			bool dupe = false;
@@ -160,6 +211,11 @@ bool ReadFile(string filename, List *list)
 		else
 		{
 			cout << "Error parsing " << filename << ": bad attribute identifier" << endl;
+<<<<<<< Updated upstream
+=======
+			studentFile.close();
+			return false;
+>>>>>>> Stashed changes
 		}
 	}
 
@@ -174,7 +230,12 @@ bool ReadFile(string filename, List *list)
 		cur = cur->next;
 	}
 	cout << count << " students!" << endl;
+<<<<<<< Updated upstream
 	//
+=======
+
+	studentFile.close();
+>>>>>>> Stashed changes
 	return true;
 }
 
@@ -183,6 +244,7 @@ bool DeleteRecord(List *list, char *id)
 	return true;
 }
 
+<<<<<<< Updated upstream
 bool SearchStudent(List *list, char *id, LibStudent &student)
 {
 	Node *cur = list->head;
@@ -193,6 +255,15 @@ bool SearchStudent(List *list, char *id, LibStudent &student)
 		if (strcmp(cur->item.id, id) == 0)
 		{						 // check if given id is
 			student = cur->item; // update referenced LibStudent
+=======
+bool SearchStudent(List* list, char* idPtr, LibStudent& student) {
+
+	Node* cur = list->head;
+	while (cur != NULL) {
+		cout << cur->item.id << " : " << idPtr << endl;
+		if (strcmp(cur->item.id, idPtr) == 0) {
+			student = cur->item;
+>>>>>>> Stashed changes
 			return true;
 		}
 		cur = cur->next;
@@ -200,8 +271,12 @@ bool SearchStudent(List *list, char *id, LibStudent &student)
 	return false; // not found
 }
 
+<<<<<<< Updated upstream
 bool InsertBook(string filename, List *list)
 {
+=======
+bool InsertBook(string filename, List* list) {
+>>>>>>> Stashed changes
 
 	string studentID, authorsLine, borrowStr, dueStr;
 	LibBook book;
@@ -218,8 +293,14 @@ bool InsertBook(string filename, List *list)
 		return false;
 	}
 
+<<<<<<< Updated upstream
 	while (inFile >> studentID >> authorsLine >> book.title >> book.publisher >> book.ISBN >> book.yearPublished >> book.callNum >> borrowStr >> dueStr)
 	{ // input to the Libbook
+=======
+	while (inFile >> studentID >> authorsLine >> book.title >> book.publisher
+		>> book.ISBN >> book.yearPublished >> book.callNum
+		>> borrowStr >> dueStr) { //input to the Libbook 
+>>>>>>> Stashed changes
 
 		Node *cur = list->head; // find the student id in the list
 		bool found = false;
@@ -294,8 +375,12 @@ bool Display(List *list, int source, int detail)
 		{
 			filename = "student_booklist.txt";
 		}
+<<<<<<< Updated upstream
 		else if (detail == 2)
 		{
+=======
+		else if (detail == 2) {
+>>>>>>> Stashed changes
 			filename = "student_info.txt";
 		}
 		else
@@ -399,13 +484,21 @@ bool computeAndDisplayStatistics(List *list)
 bool printStuWithSameBook(List *list, char *callNum)
 {
 
+<<<<<<< Updated upstream
 	if (list->head == NULL)
 	{
+=======
+	if (list->head == NULL) {
+>>>>>>> Stashed changes
 		cout << "No Students found!";
 		return false;
 	}
 
+<<<<<<< Updated upstream
 	Node *cur = list->head;
+=======
+	Node* cur = list->head;
+>>>>>>> Stashed changes
 	LibBook temp;
 	int count = 0;
 
@@ -432,9 +525,15 @@ bool printStuWithSameBook(List *list, char *callNum)
 	}
 
 	cout << "There are " << count
+<<<<<<< Updated upstream
 		 << (count == 1 ? " student that borrows" : " students that borrow")
 		 << " the book with call number " << callNum
 		 << " as shown below: \n\n";
+=======
+		<< (count == 1 ? " student that borrows" : " students that borrow")
+		<< " the book with call number " << callNum
+		<< " as shown below: \n\n";
+>>>>>>> Stashed changes
 
 	cur = list->head;
 
@@ -464,14 +563,90 @@ bool printStuWithSameBook(List *list, char *callNum)
 	return true;
 }
 
+<<<<<<< Updated upstream
 bool displayWarnedStudent(List *list, List *type1, List *type2)
 {
+=======
+bool displayWarnedStudent(List* list, List* type1, List* type2) {
+
+	if (list->head == NULL) {
+		cout << "No Students found!";
+		return false;
+	}
+
+	Node* cur = list->head;
+	int count = 0, overdue = 0;
+
+	while (cur != NULL) {
+		for (int i = 0; i < cur->item.totalbook; i++) {
+			if (cur->item.total_fine / 0.5 >= 10)
+				count++;
+			else if (cur->item.book->fine > 0)
+				overdue++;
+			continue;
+		}
+		if (count >= 2) {
+			type1->insert(cur->item);
+		}
+		if (cur->item.total_fine >= 50 && overdue == cur->item.totalbook) {
+			type2->insert(cur->item);
+		}
+		cur = cur->next;
+	}
+
+	cur = type1->head;
+
+	if (type1->size() == 0) {
+		cout << "No Students Found in Type 1." << endl;
+		return false;
+	}
+	else {
+		cout << "List of Warned Students (>= 2 books overdue for >= 10 days): \n\n";
+
+		while (cur != NULL) {
+			cout << "Student Name: " << cur->item.name << endl;
+			cout << "Student ID: " << cur->item.id << endl;
+			cout << "Course: " << cur->item.course << endl << endl;
+			for (int j = 0; j < cur->item.totalbook; j++) {
+				cout << "Book " << j + 1 << endl;
+				cur->item.book[j].print(cout);
+			}
+			cur = cur->next;
+		}
+	}
+
+	cur = type2->head;
+
+	if (type2->size() == 0) {
+		cout << "No Students Found in Type 2." << endl;
+		return false;
+	}
+	else {
+		cout << "List of Warned Students (Every book is due and totalfine >= 50): \n\n";
+
+		while (cur != NULL) {
+			cout << "Student Name: " << cur->item.name << endl;
+			cout << "Student ID: " << cur->item.id << endl;
+			cout << "Course: " << cur->item.course << endl << endl;
+			for (int j = 0; j < cur->item.totalbook; j++) {
+				cout << "Book " << j + 1 << endl;
+				cur->item.book[j].print(cout);
+			}
+			cur = cur->next;
+		}
+	}
+>>>>>>> Stashed changes
 	return true;
 }
 
 int menu()
 {
+<<<<<<< Updated upstream
 	List *studentList = new List(); // main student list
+=======
+
+	List* studentList = new List(); // main student list
+>>>>>>> Stashed changes
 	int sel;						// menu control
 
 	while (true)

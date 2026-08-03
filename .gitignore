@@ -4,3 +4,7 @@
 
 /.vs/DSA-assign-1.slnx
 /.vs
+.vscode/tasks.json
+app.obj
+app.pdb
+vc140.pdb
