@@ -93,9 +93,13 @@ int julianDay(Date date)
 
 bool ReadFile(string filename, List* list)
 {
-
-	// open file
 	ifstream studentFile(filename);
+
+	if (list == NULL) // check if list is empty
+	{
+		cout << "Error: List does not exist!";
+	}
+	// open file
 	if (!studentFile.is_open())
 	{
 		cout << "Warning parsing " << filename << ": file cannot be opened" << endl;
@@ -140,6 +144,7 @@ bool ReadFile(string filename, List* list)
 
 			bool dupe = false;
 			Node* cur = list->head;
+
 			// check for duplicate student by id, assuming all id are unique
 			while (cur != NULL)
 			{
@@ -174,12 +179,11 @@ bool ReadFile(string filename, List* list)
 		cur = cur->next;
 	}
 	cout << count << " students!" << endl;
-	//
 	return true;
 }
 
 bool DeleteRecord(List* list, char* id) {
-	if (list->empty()) {
+	if (list == NULL || list->empty()) {//check if list is empty
 		cout << "Error: List is empty. Cannot delete record." << endl;
 		return false;
 	}
@@ -188,18 +192,22 @@ bool DeleteRecord(List* list, char* id) {
 	int position = 1;
 
 	while (cur != NULL) {
-		if (strcmp(cur->item.id, id) == 0) {
+		if (strcmp(cur->item.id, id) == 0) { //compare id with input
 			return list->remove(position);
 		}
 		cur = cur->next;
 		position++;
 	}
 	return false;
-
 }
 
 bool SearchStudent(List* list, char* id, LibStudent& student)
 {
+	if (list == NULL || list->empty()) {//check if list is empty
+		cout << "Error: List is empty. Cannot search record." << endl;
+		return false;
+	}
+
 	Node* cur = list->head;
 
 	while (cur != NULL)
@@ -217,20 +225,20 @@ bool SearchStudent(List* list, char* id, LibStudent& student)
 
 bool InsertBook(string filename, List* list)
 {
-	if (list->empty()) {
+	if (list == NULL || list->empty()) { //check if list is empty
 		cout << "Error: List is empty. Cannot insert books" << endl;
 		return false;
 	}
 	string studentID, authorsLine, borrowStr, dueStr;
 	LibBook book;
 
-	Date currentDate;
+	Date currentDate; // given date
 	currentDate.day = 29;
 	currentDate.month = 3;
 	currentDate.year = 2020;
 
 	ifstream inFile(filename);
-	if (!inFile.is_open())
+	if (!inFile.is_open()) // unable to open file
 	{
 		cout << "Error: Cannot open file " << filename << endl;
 		return false;
@@ -243,14 +251,14 @@ bool InsertBook(string filename, List* list)
 		bool found = false;
 		while (cur != NULL)
 		{
-			if (strcmp(cur->item.id, studentID.c_str()) == 0)
+			if (strcmp(cur->item.id, studentID.c_str()) == 0) // compare student ID
 			{
 				found = true;
 				break;
 			}
 			cur = cur->next;
 		}
-		if (!found)
+		if (!found) // student ID not found
 		{
 			cout << "Error: cannot find " << book.title << " book related " << studentID << " student ID!" << endl;
 			continue;
@@ -278,7 +286,7 @@ bool InsertBook(string filename, List* list)
 		{
 			daysOverdue = currentJDN - dueJDN;
 		}
-		book.fine = daysOverdue * 0.5; // RM 0.5 per day
+		book.fine = daysOverdue * 0.5; // RM 0.50 per day
 
 		// insert the book into the student book record
 		if (student.totalbook < 15)
@@ -288,6 +296,8 @@ bool InsertBook(string filename, List* list)
 			student.calculateTotalFine(); // undergo the provide function
 		}
 		else cout << "Error: cannot append " << book.title << " book into student " << studentID << ", student already has 15 books!" << endl;
+
+		//debug #REMOVE
 		cout << "Loaded book " << book.title << ", by student " << student.name << ", id " << student.id << ", borrowdate ";
 		book.borrow.print(cout);
 		cout << ", borrowstr " << borrowStr << ", duejulianday " << dueJDN << ", currentjulianday " << currentJDN << ", duedate ";
@@ -307,16 +317,17 @@ bool Display(List* list, int source, int detail)
 		return false;
 	}
 	ostream* out = &cout; // for screen output if(source ==2)
-	ofstream fileOut;	  // for file output (source==1)
+	ofstream fileOut;	  // for file output if(source==1)
 
 	if (source == 1)
-	{
+	{// change and open output destination
 		string filename;
 		if (detail == 1)
 		{
 			filename = "student_booklist.txt";
 		}
-		else if (detail == 2) {
+		else if (detail == 2) 
+		{
 			filename = "student_info.txt";
 		}
 		else
@@ -344,7 +355,8 @@ bool Display(List* list, int source, int detail)
 	while (cur != NULL)
 	{ // loop until end of list
 		LibStudent& stu = cur->item;
-
+		
+		//print students info
 		*out << "STUDENT " << studentNo << endl;
 		*out << "Name:  " << stu.name << endl;
 		*out << "Id: " << stu.id << endl;
@@ -361,7 +373,7 @@ bool Display(List* list, int source, int detail)
 			}
 			else
 			{
-				for (int i = 0; i < stu.totalbook; i++)
+				for (int i = 0; i < stu.totalbook; i++) //loop prints out book info
 				{
 					LibBook& book = stu.book[i];
 					*out << "Book " << (i + 1) << endl;
@@ -402,7 +414,8 @@ bool Display(List* list, int source, int detail)
 	if (source == 1)
 	{
 		fileOut.close();
-		cout << "Successfully display output to " << ((detail == 1) ? "student_booklist.txt" : "student_info.txt") << endl;
+		cout << "Successfully display output to " << ((detail == 1) ? "student_booklist.txt" : "student_info.txt") << endl; 
+		// display which path is the destination
 	}
 	else
 	{
@@ -414,7 +427,7 @@ bool Display(List* list, int source, int detail)
 
 bool computeAndDisplayStatistics(List* list)
 {
-	if (list == NULL || list->empty())
+	if (list == NULL || list->empty()) // check if list is empty
 	{
 		cout << "Error: List is empty!" << endl;
 		return false;
@@ -464,7 +477,7 @@ bool computeAndDisplayStatistics(List* list)
 bool printStuWithSameBook(List* list, char* callNum)
 {
 
-	if (list->head == NULL) {
+	if (list == NULL || list->empty()) { //check if list is empty
 		cout << "No Students found!";
 		return false;
 	}
@@ -475,7 +488,7 @@ bool printStuWithSameBook(List* list, char* callNum)
 
 	strcpy(temp.callNum, callNum);
 
-	while (cur != NULL)
+	while (cur != NULL) // traverse list to compare Call Number
 	{
 		for (int i = 0; i < cur->item.totalbook; i++)
 		{
@@ -489,7 +502,7 @@ bool printStuWithSameBook(List* list, char* callNum)
 		cur = cur->next;
 	}
 
-	if (count == 0)
+	if (count == 0) // No books found
 	{
 		cout << "No Books with " << callNum << " found!";
 		return false;
@@ -502,7 +515,7 @@ bool printStuWithSameBook(List* list, char* callNum)
 
 	cur = list->head;
 
-	while (cur != NULL)
+	while (cur != NULL) //Traverse the list again to output info
 	{
 		for (int j = 0; j < cur->item.totalbook; j++)
 		{
@@ -530,26 +543,26 @@ bool printStuWithSameBook(List* list, char* callNum)
 
 bool displayWarnedStudent(List* list, List* type1, List* type2) {
 
-	if (list->head == NULL) {
-		cout << "No Students found!";
+	if (list == NULL || list->empty()) { //Check for empty list
+		cout << "List is empty!";
 		return false;
 	}
 
 	Node* cur = list->head;
 
-	while (cur != NULL) {
+	while (cur != NULL) { //add counter for type 1 and type 2
 		int count = 0, overdue = 0;
 		for (int i = 0; i < cur->item.totalbook; i++) {
-			if (cur->item.book[i].fine / 0.5 >= 10)
+			if (cur->item.book[i].fine / 0.5 >= 10) //books overdue for >= 10 days (type 1)
 				count++;
-			if (cur->item.book[i].fine > 0)
+			if (cur->item.book[i].fine > 0) //books that are overdue (type 2)
 				overdue++;
 			continue;
 		}
-		if (count > 2) {
+		if (count > 2) { //condition for type 1
 			type1->insert(cur->item);
 		}
-		if (cur->item.total_fine > 50 && overdue == cur->item.totalbook) {
+		if (cur->item.total_fine > 50 && overdue == cur->item.totalbook) { //condition for type 2
 			type2->insert(cur->item);
 		}
 		cur = cur->next;
@@ -557,6 +570,7 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 
 	cur = type1->head;
 
+	//prints student and book info for type 1
 	if (type1->size() == 0) {
 		cout << "No Students Found in Type 1." << endl;
 	}
@@ -567,7 +581,7 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 			cur->item.print(cout);
 			for (int j = 0; j < cur->item.totalbook; j++) {
 				if (cur->item.book[j].fine <= 5) continue; //skip books w/o fine
-				cout << "Book " << j + 1 << endl;
+				cout << "Book " << j + 1 << ":" << endl;
 				cur->item.book[j].print(cout);
 			}
 			cur = cur->next;
@@ -576,6 +590,7 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 
 	cur = type2->head;
 
+	//prints student and book info for type 2
 	if (type2->size() == 0) {
 		cout << "No Students Found in Type 2." << endl;
 	}
