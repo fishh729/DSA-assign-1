@@ -646,7 +646,7 @@ int menu()
 	while (true)
 	{
 
-		cout << "\nWelcome to 89 Student Library Management System!\n\nPlease enter a selection: " << endl;
+		cout << "\nWelcome to Student Library Management System!\n\nPlease enter a selection: " << endl;
 
 		cout << "(1) Read File" << endl;
 		cout << "(2) Delete Record" << endl;
