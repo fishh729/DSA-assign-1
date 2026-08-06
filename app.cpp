@@ -19,6 +19,7 @@ using namespace std;
 int splitString(const string&, string[], char, int); //splits a string into array using a delimiter
 Date extractDate(string); //splits a string into dates assuming '/' delimiter and integer values
 int julianDay(Date); //converts a date (d, m, y) into its JD value
+string formatString(string); // format string containing '_' to ' '
 
 bool ReadFile(string, List*);
 bool DeleteRecord(List*, char*);
@@ -62,15 +63,19 @@ Date extractDate(string line)
 
 	size_t d1 = line.find('/');
 	size_t d2 = line.find('/', d1 + 1);
+
 	try
 	{ // extract day, month, year integer left, inside, and right of delimiter respectively
 		date.day = stoi(line.substr(0, d1));
 		date.month = stoi(line.substr(d1 + 1, d2 - d1 - 1));
 		date.year = stoi(line.substr(d2 + 1));
 	}
-	catch (invalid_argument e)
+	catch (const invalid_argument & e)
 	{ // in case stoi fails due to invalid characters
-		cout << "Error: invalid date format for " << line << endl;
+		std::cout << "Error parsing date " << line << ": " << e.what() << endl;
+	}
+	catch (const out_of_range & e) {
+		std::cout << "Error parsing date " << line << ": " << e.what() << endl;
 	}
 
 	return date;
@@ -91,6 +96,17 @@ int julianDay(Date date)
 	return static_cast<int>(365.25 * (year + 4716)) + static_cast<int>(30.6001 * (month + 1)) + day + b - 1524.5;
 }
 
+string formatString(string line)
+{
+	string temp = line;
+	for (char& c : temp)
+	{
+		if (c == '_')
+			c = ' ';
+	}
+	return temp;
+}
+
 bool ReadFile(string filename, List* list)
 {
 	ifstream studentFile(filename);
@@ -98,6 +114,7 @@ bool ReadFile(string filename, List* list)
 	if (list == NULL) // check if list is empty
 	{
 		cout << "Error: List does not exist!";
+		return false;
 	}
 	// open file
 	if (!studentFile.is_open())
@@ -167,18 +184,11 @@ bool ReadFile(string filename, List* list)
 			cout << "Error parsing " << filename << ": bad attribute identifier" << endl;
 		}
 	}
-
-	// debug purposes ##REMOVE##
-	int count = 0;
-	cout << "Loaded: " << endl;
-	Node* cur = list->head;
-	while (cur != NULL)
+	if (stuCount == 0)
 	{
-		cout << cur->item.id << endl;
-		count++;
-		cur = cur->next;
+		cout << "File cannot be read! ";
+		return false;
 	}
-	cout << count << " students!" << endl;
 	return true;
 }
 
@@ -212,7 +222,6 @@ bool SearchStudent(List* list, char* id, LibStudent& student)
 
 	while (cur != NULL)
 	{
-		cout << cur->item.id << " : " << id << endl; // debug, REMOVE
 		if (strcmp(cur->item.id, id) == 0)
 		{						 // check if given id is
 			student = cur->item; // update referenced LibStudent
@@ -229,8 +238,9 @@ bool InsertBook(string filename, List* list)
 		cout << "Error: List is empty. Cannot insert books" << endl;
 		return false;
 	}
-	string studentID, authorsLine, borrowStr, dueStr;
-	LibBook book;
+	string studentID, authorsLine, borrowStr, dueStr, title, publisher, isbn, callNum;
+	int yearPublished;
+	int successCount = 0;
 
 	Date currentDate; // given date
 	currentDate.day = 29;
@@ -244,9 +254,14 @@ bool InsertBook(string filename, List* list)
 		return false;
 	}
 
-	while (inFile >> studentID >> authorsLine >> book.title >> book.publisher >> book.ISBN >> book.yearPublished >> book.callNum >> borrowStr >> dueStr)
+	while (inFile >> studentID >> authorsLine >> title >> publisher >> isbn >> yearPublished >> callNum >> borrowStr >> dueStr)
 	{ // input to the Libbook
-
+		LibBook book;
+		strcpy(book.title, formatString(title).c_str());
+		strcpy(book.publisher, formatString(publisher).c_str());
+		strcpy(book.ISBN, isbn.c_str());
+		book.yearPublished = yearPublished;
+		strcpy(book.callNum, callNum.c_str());
 		Node* cur = list->head; // find the student id in the list
 		bool found = false;
 		while (cur != NULL)
@@ -267,10 +282,11 @@ bool InsertBook(string filename, List* list)
 
 		// parse the author names and store it into the book.author array
 		string authors[10];
-		for (int i = 0; i < splitString(authorsLine, authors, '/', 10); i++)
+		int numAuthors = splitString(authorsLine, authors, '/', 10);
+		for (int i = 0; i < numAuthors; i++)
 		{
 			book.author[i] = new char[authors[i].length() + 1];
-			strcpy(book.author[i], authors[i].c_str());
+			strcpy(book.author[i], formatString(authors[i]).c_str());
 		}
 
 		// parse the borrow and due date and store it into the book.borrow and book.due
@@ -291,21 +307,31 @@ bool InsertBook(string filename, List* list)
 		// insert the book into the student book record
 		if (student.totalbook < 15)
 		{
-			student.book[student.totalbook] = book;
-			student.totalbook++;
-			student.calculateTotalFine(); // undergo the provide function
+			bool same = false;
+			
+			for (int i = 0; i < student.totalbook; i++)
+			{
+				if (strcmp(student.book[i].callNum, callNum.c_str()) == 0 && julianDay(student.book[i].borrow) == julianDay(extractDate(borrowStr)))
+				{ // check duplicates
+					same = true;
+					cout << "Error. Unable to Insert " << book.title << " to file to " << student.name << "!" << endl;
+					break;
+				}
+			}
+			if (!same) { // append if no dupes
+				student.book[student.totalbook] = book;
+				student.totalbook++;
+				successCount++;
+				student.calculateTotalFine(); // undergo the provide function
+			}
 		}
 		else cout << "Error: cannot append " << book.title << " book into student " << studentID << ", student already has 15 books!" << endl;
-
-		//debug #REMOVE
-		cout << "Loaded book " << book.title << ", by student " << student.name << ", id " << student.id << ", borrowdate ";
-		book.borrow.print(cout);
-		cout << ", borrowstr " << borrowStr << ", duejulianday " << dueJDN << ", currentjulianday " << currentJDN << ", duedate ";
-		book.due.print(cout);
-		cout << ", duestr " << dueStr << ", FINE " << book.fine << endl;
 	}
 
 	inFile.close();
+
+	if (successCount == 0) return false; // no books
+
 	return true;
 }
 
@@ -326,7 +352,7 @@ bool Display(List* list, int source, int detail)
 		{
 			filename = "student_booklist.txt";
 		}
-		else if (detail == 2) 
+		else if (detail == 2)
 		{
 			filename = "student_info.txt";
 		}
@@ -355,7 +381,7 @@ bool Display(List* list, int source, int detail)
 	while (cur != NULL)
 	{ // loop until end of list
 		LibStudent& stu = cur->item;
-		
+
 		//print students info
 		*out << "STUDENT " << studentNo << endl;
 		*out << "Name:  " << stu.name << endl;
@@ -414,7 +440,7 @@ bool Display(List* list, int source, int detail)
 	if (source == 1)
 	{
 		fileOut.close();
-		cout << "Successfully display output to " << ((detail == 1) ? "student_booklist.txt" : "student_info.txt") << endl; 
+		cout << "Successfully display output to " << ((detail == 1) ? "student_booklist.txt" : "student_info.txt") << endl;
 		// display which path is the destination
 	}
 	else
@@ -559,10 +585,10 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 				overdue++;
 			continue;
 		}
-		if (count > 2) { //condition for type 1
+		if (count >= 2) { //condition for type 1
 			type1->insert(cur->item);
 		}
-		if (cur->item.total_fine > 50 && overdue == cur->item.totalbook) { //condition for type 2
+		if (cur->item.total_fine >= 50 && overdue == cur->item.totalbook) { //condition for type 2
 			type2->insert(cur->item);
 		}
 		cur = cur->next;
@@ -579,9 +605,10 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 
 		while (cur != NULL) {
 			cur->item.print(cout);
+			cout << endl;
 			for (int j = 0; j < cur->item.totalbook; j++) {
-				if (cur->item.book[j].fine <= 5) continue; //skip books w/o fine
-				cout << "Book " << j + 1 << ":" << endl;
+				if (cur->item.book[j].fine < 5) continue; //skip books w/o fine
+				cout << "Book " << j + 1 << ":";
 				cur->item.book[j].print(cout);
 			}
 			cur = cur->next;
@@ -600,7 +627,7 @@ bool displayWarnedStudent(List* list, List* type1, List* type2) {
 		while (cur != NULL) {
 			cur->item.print(cout);
 			for (int j = 0; j < cur->item.totalbook; j++) {
-				cout << "Book " << j + 1 << endl;
+				cout << "Book " << j + 1 << ":";
 				cur->item.book[j].print(cout);
 			}
 			cur = cur->next;
@@ -614,12 +641,11 @@ int menu()
 
 	List* studentList = new List(); // main student list
 	int sel;						// menu control
-	LibStudent searchedStu;	
-	List* warnedType1 = new List();
-	List* warnedType2 = new List();
+	LibStudent searchedStu;
 
 	while (true)
 	{
+
 		cout << "\nWelcome to 89 Student Library Management System!\n\nPlease enter a selection: " << endl;
 
 		cout << "(1) Read File" << endl;
@@ -639,7 +665,8 @@ int menu()
 		switch (sel)
 		{
 		case 1:
-			ReadFile("student2.txt", studentList);
+			if (ReadFile("student.txt", studentList))
+				cout << "Successfully Read File!" << endl;
 			break;
 		case 2:
 			char delID[10];
@@ -669,7 +696,9 @@ int menu()
 
 			break;
 		case 4:
-			InsertBook("book2.txt", studentList);
+			if (InsertBook("book.txt", studentList))
+				cout << "Successfully Inserted Books!" << endl;
+			else cout << "No Books is Inserted!" << endl;
 			break;
 		case 5:
 			int source, detail;
@@ -679,6 +708,7 @@ int menu()
 				cin >> source;
 				cout << "Do you want to display book list for every student (1 - YES / 2 - NO): ";
 				cin >> detail;
+				cout << endl;
 				if ((source == 1 || source == 2) && (detail == 1 || detail == 2)) break;
 				cout << "Please enter only values [1 or 2] for source and detail." << endl;
 			}
@@ -694,12 +724,22 @@ int menu()
 			if (!printStuWithSameBook(studentList, callNumQuery))
 				cout << "List is empty!" << endl;
 			break;
-		case 8:
-			displayWarnedStudent(studentList, warnedType1, warnedType2);
+		case 8: {
+			List warnedType1, warnedType2;
+			displayWarnedStudent(studentList, &warnedType1, &warnedType2);
 			break;
+		}
 		case 9:
 			return 0;
 			break;
+
+		default: {
+			cout << "Please enter a valid selection (1-9)! " << endl;
+			break;
 		}
+		}
+		system("PAUSE");
+		system("CLS");
 	}
+	return 0;
 }
